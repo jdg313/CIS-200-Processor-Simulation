@@ -26,8 +26,16 @@ struct jobEntry {
     processingTime(pt), next(ptr) {}
 };
 
+struct jobComparator {
+    bool operator()(const jobEntry& a, const jobEntry& b) const {
+        // Priority logic: earlier arrivalTime or higher priority for same arrivalTime
+        if (a.arrivalTime == b.arrivalTime) return a.jobType < b.jobType; // Assuming 'D' > 'A', 'B', 'C'
+        return a.arrivalTime > b.arrivalTime;
+    }
+};
+
 int main() {
-    int time = 0;
+    int clock = 0;
     ifstream inputData("mergedData.txt");
 
     // Create a linked list of all jobs from input data
@@ -61,15 +69,15 @@ int main() {
         cout << "Processing Time: " << current->processingTime << endl;
 
         current = current->next;
+    }    
+
+    priority_queue<jobEntry*, vector<jobEntry*>, jobComparator> queue;
+
+    while (clock < 100) {
+        if (queue.empty()) {
+            
+        }
     }
-    
-    queue<jobEntry> mainQ;
-    
-    
-    
-    
-    
-    
     
     // Delete and free memory once done
     current = head;
