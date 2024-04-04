@@ -16,6 +16,12 @@ Purpose: Create dataset for simulation
 
 using namespace std;
 
+struct jobEntry {
+    char jobType;
+    int arrivalTime;
+    int processingTime;
+};
+
 int main () {
     srand(time(0)); // Randomize rand seed
 
@@ -38,7 +44,7 @@ int main () {
     }
 
     // Type A Generation (2400 Iterations)
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 2400; ++i) {
         arrivalTimeA += 6 + (rand() % 3);
         processingTimeA = 1 + (rand() % 5);
 
@@ -49,7 +55,7 @@ int main () {
     cout << endl;
 
     // Type B Generation (2000 Iterations)
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 2000; ++i) {
         arrivalTimeB += 2 + (rand() % 7);
         processingTimeB = 3 + (rand() % 11);
 
@@ -60,7 +66,7 @@ int main () {
     cout << endl;
 
     // Type C Generation (1100 Iterations)
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 1100; ++i) {
         arrivalTimeC += 4 + (rand() % 15);
         processingTimeC = 6 + (rand() % 7);
 
@@ -71,7 +77,7 @@ int main () {
     cout << endl;
 
     // Type D Generation (1500 Iterations)
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 1500; ++i) {
         arrivalTimeD += 2 + (rand() % 11);
         processingTimeD = 2 + (rand() % 21);
 
@@ -85,82 +91,97 @@ int main () {
     ifstream inputDataC("outputDataTypeC.txt");
     ifstream inputDataD("outputDataTypeD.txt");
     ofstream mergedData("mergedData.txt");
-    stringstream test; // Might need
 
-    int lowestArrivalTimeOverall = 0;
-    int lowestProcessingTimeOverall = 0;
-    int lowestArrivalTimeA = 0, lowestArrivalTimeB = 0, lowestArrivalTimeC = 0, lowestArrivalTimeD = 0;
-    int lowestProcessingTimeA = 0, lowestProcessingTimeB = 0, lowestProcessingTimeC = 0, lowestProcessingTimeD = 0;
-    int indexPositionA = 0, indexPositionB = 0, indexPositionC = 0, indexPositionD = 0;
-    char lowJobType = '\0';
-    char tempJobType ='\0';
+    char tempCharStorage;
+    int tempArrivalStorage;
+    int tempProcessingStorage;
 
-    int tempStoreArrive;
-    int tempStoreProcess;
-    char tempStoreType;
+    jobEntry typeA[2400];
+    jobEntry typeB[2000];
+    jobEntry typeC[1100];
+    jobEntry typeD[1500];
 
-    // inputDataA >> tempJobType >> lowestArrivalTimeA >> lowestProcessingTimeA;
-    // cout << tempJobType << lowestArrivalTimeA << lowestProcessingTimeA;
-
-    for (int i = 0; i < 80; ++i) {
-        // Start from position last recorded
-        inputDataA.seekg(indexPositionA);
-        inputDataB.seekg(indexPositionB);
-        inputDataC.seekg(indexPositionC);
-        inputDataD.seekg(indexPositionD);
-        // Grab lowest
-        inputDataA >> tempJobType >> lowestArrivalTimeA >> lowestProcessingTimeA;
-        inputDataB >> tempJobType >> lowestArrivalTimeB >> lowestProcessingTimeB;
-        inputDataC >> tempJobType >> lowestArrivalTimeC >> lowestProcessingTimeC;
-        inputDataD >> tempJobType >> lowestArrivalTimeD >> lowestProcessingTimeD;
-
-        if (lowestArrivalTimeA <= lowestArrivalTimeB) {
-            if (lowestArrivalTimeA <= lowestArrivalTimeC) {
-                if (lowestArrivalTimeA < lowestArrivalTimeD) {
-                    lowestArrivalTimeOverall = lowestArrivalTimeA;
-                    indexPositionA += 9;
-                    mergedData << jobTypeA << " " << lowestArrivalTimeOverall << " " << lowestProcessingTimeA << endl;
-                    continue;
-                }
-                else if (lowestArrivalTimeA == lowestArrivalTimeD) {
-                    lowestArrivalTimeOverall = lowestArrivalTimeD;
-                    indexPositionD += 9;
-                    mergedData << jobTypeD << " " << lowestArrivalTimeOverall << " " << lowestProcessingTimeD << endl;
-                    continue;
-                }
-            }
-        }
-        else if (lowestArrivalTimeA > lowestArrivalTimeB) {
-            if (lowestArrivalTimeB <= lowestArrivalTimeC) {
-                if (lowestArrivalTimeB < lowestArrivalTimeD) {
-                    lowestArrivalTimeOverall = lowestArrivalTimeB;
-                    indexPositionB += 9;
-                    mergedData << jobTypeB << " " << lowestArrivalTimeOverall << " " << lowestProcessingTimeB << endl;
-                    continue;
-                }
-                else if (lowestArrivalTimeB == lowestArrivalTimeD) {
-                    lowestArrivalTimeOverall = lowestArrivalTimeD;
-                    indexPositionD += 9;
-                    mergedData << jobTypeD << " " << lowestArrivalTimeOverall << " " << lowestProcessingTimeD << endl;
-                    continue;
-                }
-            }
-        }
-        else if (lowestArrivalTimeB > lowestArrivalTimeC) {
-            if (lowestArrivalTimeC < lowestArrivalTimeD) {
-                lowestArrivalTimeOverall = lowestArrivalTimeC;
-                indexPositionC += 9;
-                mergedData << jobTypeC << " " << lowestArrivalTimeOverall << " " << lowestProcessingTimeC << endl;
-                continue;
-            }
-            else if (lowestArrivalTimeB == lowestArrivalTimeD) {
-                    lowestArrivalTimeOverall = lowestArrivalTimeD;
-                    indexPositionD += 9;
-                    mergedData << jobTypeD << " " << lowestArrivalTimeOverall << " " << lowestProcessingTimeD << endl;
-                    continue;
-            }
-        }
+    // Type A Structs
+    for (int i = 0; i < 2400; ++i) {
+        inputDataA >> tempCharStorage >> tempArrivalStorage >> tempProcessingStorage;
+        typeA[i].jobType = tempCharStorage;
+        typeA[i].arrivalTime = tempArrivalStorage;
+        typeA[i].processingTime = tempProcessingStorage;
+    }
+    // Type B Structs
+    for (int i = 0; i < 2000; ++i) {
+        inputDataB >> tempCharStorage >> tempArrivalStorage >> tempProcessingStorage;
+        typeB[i].jobType = tempCharStorage;
+        typeB[i].arrivalTime = tempArrivalStorage;
+        typeB[i].processingTime = tempProcessingStorage;
+    }
+    // Type C Structs
+    for (int i = 0; i < 1100; ++i) {
+        inputDataC >> tempCharStorage >> tempArrivalStorage >> tempProcessingStorage;
+        typeC[i].jobType = tempCharStorage;
+        typeC[i].arrivalTime = tempArrivalStorage;
+        typeC[i].processingTime = tempProcessingStorage;
+    }
+    // Type D Structs
+    for (int i = 0; i < 1500; ++i) {
+        inputDataD >> tempCharStorage >> tempArrivalStorage >> tempProcessingStorage;
+        typeD[i].jobType = tempCharStorage;
+        typeD[i].arrivalTime = tempArrivalStorage;
+        typeD[i].processingTime = tempProcessingStorage;
     }
 
+    int aIndex = 0;
+    int bIndex = 0;
+    int cIndex = 0;
+    int dIndex = 0;
+
+    while (aIndex < 2400 || bIndex < 2000 || cIndex < 1100 || dIndex < 1500) {
+        int lowestTime = INT_MAX;
+        char selectedType;
+        int selectedArrival = 0, selectedProcessing = 0;
+        int* selectedIndex = nullptr;
+
+        // Check Type A
+        if (aIndex < 2400 && typeA[aIndex].arrivalTime < lowestTime) {
+            lowestTime = typeA[aIndex].arrivalTime;
+            selectedType = typeA[aIndex].jobType;
+            selectedArrival = typeA[aIndex].arrivalTime;
+            selectedProcessing = typeA[aIndex].processingTime;
+            selectedIndex = &aIndex;
+        }
+
+        // Check Type B
+        if (bIndex < 2000 && typeB[bIndex].arrivalTime < lowestTime) {
+            lowestTime = typeB[bIndex].arrivalTime;
+            selectedType = typeB[bIndex].jobType;
+            selectedArrival = typeB[bIndex].arrivalTime;
+            selectedProcessing = typeB[bIndex].processingTime;
+            selectedIndex = &bIndex;
+        }
+
+        // Check Type C
+        if (cIndex < 1100 && typeC[cIndex].arrivalTime < lowestTime) {
+            lowestTime = typeC[cIndex].arrivalTime;
+            selectedType = typeC[cIndex].jobType;
+            selectedArrival = typeC[cIndex].arrivalTime;
+            selectedProcessing = typeC[cIndex].processingTime;
+            selectedIndex = &cIndex;
+        }
+
+        // Check Type D
+        if (dIndex < 1500 && typeD[dIndex].arrivalTime <= lowestTime) {
+            lowestTime = typeD[dIndex].arrivalTime;
+            selectedType = typeD[dIndex].jobType;
+            selectedArrival = typeD[dIndex].arrivalTime;
+            selectedProcessing = typeD[dIndex].processingTime;
+            selectedIndex = &dIndex;
+        }
+
+        // Write the selected entry to mergedData
+        if (selectedIndex != nullptr) {
+            mergedData << selectedType << " " << selectedArrival << " " << selectedProcessing << "\n";
+            (*selectedIndex)++; // Move to the next entry in the selected array
+        }
+    }
     return 0;
 }
