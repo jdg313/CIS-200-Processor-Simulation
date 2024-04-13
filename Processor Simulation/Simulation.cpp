@@ -65,23 +65,26 @@ vector<jobEntry> readInputFile() {
 }
 
 void runSimulation(vector<jobEntry> jobList) {
+    ofstream logFile("logFile.txt");
     CustomQueue mainQueue;
     CustomQueue interruptedQueue;
-    int clock = 0;
+    int clock = 1;
     int jobIterator = 0;
     int i;
     char jobType;
-    vector<Processor> processorList(8);
+    vector<Processor> processorList(2);
 
-    while (clock < 550) {
-        cout << "Clock: " << clock << endl;
+    while (clock <= 10000) {
+        cout << "Tick: " << clock << endl;
         // Check if job has arrived
         for (i = jobIterator; i < jobList.size(); i++) {
             if (jobList[i].arrivalTime == clock) {
                 mainQueue.enqueue(jobList[i]);
                 cout << "Job #" << jobIterator + 1 << " has arrived\n";
+                logFile << "Tick: " << clock << ": Arrival: Overall Job #" << jobIterator + 1 << ": Job Type " 
+                << jobList[i].jobType << "(#" << jobList[i].jobTypeNum << "): Processing Time: " << jobList[i].processingTime << endl;
                 jobIterator++;
-                switch (jobList[i].jobType) {
+                /* switch (jobList[i].jobType) {
                     case 'A':
                         mainQueue.totalAJobsArrived++;
                         break;
@@ -94,18 +97,65 @@ void runSimulation(vector<jobEntry> jobList) {
                     case 'D':
                         mainQueue.totalDJobsArrived++;
                         break;
-                }
+                } */
             }
         }
-        // Check if processor is idle
-        for (int i = 0; i < processorList.size(); i++) {
-            if (processorList[i].isIdle && !mainQueue.isEmpty()) {
+        // Move any priority jobs to front of queue
+        for (i = 0; i < mainQueue.currentSize; i++) {
+            if (mainQueue.jobQueue[i].priority == 1) {
+                jobEntry tempJob = mainQueue.jobQueue[i];
+                mainQueue.jobQueue.erase(mainQueue.jobQueue.begin() + i);
+                mainQueue.jobQueue.insert(mainQueue.jobQueue.begin(), tempJob);
+            }
+        }
+        // Check if priority job is at front of queue and interrupt
+        for (i = 0; i < processorList.size(); i++) {
+            if (!processorList[i].isIdle && processorList[i].currentJob.priority < mainQueue.frontJob().priority) {
+                // Interrupt job
+                jobEntry interruptedJob = processorList[i].currentJob;
+                interruptedJob.processingTime = processorList[i].timeRemaining;
+                interruptedQueue.enqueue(interruptedJob);
+                processorList[i].isIdle = true;
+                cout << "Processor " << i + 1 << " was interrupted by Job Type " << mainQueue.frontJob().jobType << "(#" << mainQueue.frontJob().jobTypeNum << ")\n";
+                logFile << "Tick: " << clock << ": Interrupted: Processor " << i + 1 << " was interrupted by Job "
+                << mainQueue.frontJob().jobType << "(#" << mainQueue.frontJob().jobTypeNum << ") \n";
+                // Assign new job to processor
                 processorList[i].currentJob = mainQueue.frontJob();
                 processorList[i].timeRemaining = processorList[i].currentJob.processingTime;
                 processorList[i].isIdle = false;
                 mainQueue.dequeue();
-                cout << "Processor " << i + 1 << " is processing job " << processorList[i].currentJob.jobType << "(#" << processorList[i].currentJob.jobTypeNum << ") "
-                << "Processing Time Remaining: " << processorList[i].timeRemaining << " ticks\n";
+                cout << "Processor " << i + 1 << " started processing job " << processorList[i].currentJob.jobType << "(#" << processorList[i].currentJob.jobTypeNum << ") "
+                << "Processing Time: " << processorList[i].timeRemaining << " ticks\n";
+            }
+        }
+
+        // Check if processor is idle
+        for (int i = 0; i < processorList.size(); i++) {
+            if (processorList[i].isIdle && !mainQueue.isEmpty()) {
+                if (!interruptedQueue.isEmpty()) {
+                    // Assign interrupted job to processor
+                    processorList[i].currentJob = interruptedQueue.frontJob();
+                    processorList[i].timeRemaining = processorList[i].currentJob.processingTime;
+                    processorList[i].isIdle = false;
+                    interruptedQueue.dequeue();
+                    cout << "Processor " << i + 1 << " resumed processing job " << processorList[i].currentJob.jobType << "(#" << processorList[i].currentJob.jobTypeNum << ") "
+                    << "Processing Time Remaining: " << processorList[i].timeRemaining << " ticks\n";
+
+                    logFile << "Tick: " << clock << ": Resumed: Processor " << i + 1 << " resumed processing Job " 
+                    << processorList[i].currentJob.jobType << "(#" << processorList[i].currentJob.jobTypeNum << ") \n";
+                }
+                else {
+                    // Assign new job to processor
+                    processorList[i].currentJob = mainQueue.frontJob();
+                    processorList[i].timeRemaining = processorList[i].currentJob.processingTime;
+                    processorList[i].isIdle = false;
+                    mainQueue.dequeue();
+                    cout << "Processor " << i + 1 << " started processing job " << processorList[i].currentJob.jobType << "(#" << processorList[i].currentJob.jobTypeNum << ") "
+                    << "Processing Time: " << processorList[i].timeRemaining << " ticks\n";
+
+                    logFile << "Tick: " << clock << ": Started: Processor " << i + 1 << " started processing Job "
+                    << processorList[i].currentJob.jobType << "(#" << processorList[i].currentJob.jobTypeNum << ") \n";
+                }
             }
             else if (processorList[i].isIdle && mainQueue.isEmpty()) {
                 // processor is idle
@@ -123,10 +173,14 @@ void runSimulation(vector<jobEntry> jobList) {
                 }
             }
         }
-        
+
         for (int i = 0; i < processorList.size(); i++) {
             if (!processorList[i].isIdle) {
                 processorList[i].timeRemaining--;
+                processorList[i].totalRunTime++;
+            }
+            else {
+                processorList[i].totalIdleTime++;
             }
         }
         // Process jobs
@@ -134,7 +188,7 @@ void runSimulation(vector<jobEntry> jobList) {
             if (!processorList[i].isIdle) {
                 if (processorList[i].timeRemaining == 0) {
                     processorList[i].isIdle = true;
-                    switch (processorList[i].currentJob.jobType) {
+                    /* switch (processorList[i].currentJob.jobType) {
                         case 'A':
                             mainQueue.totalAJobsCompleted++;
                             break;
@@ -148,11 +202,46 @@ void runSimulation(vector<jobEntry> jobList) {
                             mainQueue.totalDJobsCompleted++;
                             break;
                     }
-                    mainQueue.totalJobsCompleted++;
+                    mainQueue.totalJobsCompleted++; */
                 }
             }
         }
+        
+
+
+        interruptedQueue.totalTimeJobsInQueue += interruptedQueue.currentSize;
+        interruptedQueue.queueSizeAtTick.push_back(interruptedQueue.currentSize);
+        mainQueue.totalTimeJobsInQueue += mainQueue.currentSize;
+        mainQueue.queueSizeAtTick.push_back(mainQueue.currentSize);
+        cout << "Queue Size at Tick " << clock << ": " 
+        << mainQueue.queueSizeAtTick[clock - 1] + interruptedQueue.queueSizeAtTick[clock - 1] << "\n\n";
+        // log status statement
+        logFile << "Tick: " << clock << ": Queue Size: " 
+        << mainQueue.queueSizeAtTick[clock - 1] + interruptedQueue.queueSizeAtTick[clock - 1];
+        for (int i = 0; i < processorList.size(); i++) {
+            if (processorList[i].isIdle)
+                logFile << ": Processor " << i + 1 << " Idle Time: " << processorList[i].totalIdleTime;
+            else {
+                logFile << ": Processor " << i + 1 << " Running Time: " << processorList[i].totalRunTime;
+            }
+        }
+        logFile << endl;
         clock++;
+
+        if (clock == 550) {
+            cout << "Initial metrics report for " << processorList.size() << " processors\n";
+            mainQueue.reportMetrics(clock, interruptedQueue, processorList);
+            cout << "Continue Simulation? (y/n): ";
+            char response;
+            cin >> response;
+            if (response == 'n') {
+                logFile.close();
+                return;
+            }
+        }
     }
-    mainQueue.reportMetrics();
+    cout << "Final metrics report for " << processorList.size() << " processors\n";
+    mainQueue.reportMetrics(clock, interruptedQueue, processorList);
+    logFile.close();
+    return;
 }

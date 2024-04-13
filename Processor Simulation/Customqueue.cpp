@@ -1,4 +1,5 @@
 #include "Customqueue.h"
+#include <iomanip>
 
 using namespace std;
 
@@ -18,6 +19,7 @@ void CustomQueue::enqueue(jobEntry job) {
             totalCJobsArrived++;
             break;
         case 'D':
+            jobQueue[jobQueue.size() - 1].priority = 1;
             totalDJobsArrived++;
             break;
     }
@@ -66,10 +68,26 @@ void CustomQueue::printQueue() {
     }
 }
 
-void CustomQueue::reportMetrics() {
-    cout << "Average Queue Size: " << averageQueueSize << endl;
+void CustomQueue::reportMetrics(const int clock, CustomQueue interruptedQueue, vector<Processor> processors) {
+    averageTimeJobsInQueue = ((float)this->totalTimeJobsInQueue + interruptedQueue.totalTimeJobsInQueue) / clock;
+
+    for (int i = 0; i < queueSizeAtTick.size(); i++) {
+        averageQueueSize += this->queueSizeAtTick[i];
+        averageQueueSize += interruptedQueue.queueSizeAtTick[i];
+    }
+    averageQueueSize /= (float)(queueSizeAtTick.size() + 1);
+
+    totalTimeProcessing = 0;
+    totalTimeIdle = 0;
+
+    for (int i = 0; i < processors.size(); i++) {
+        totalTimeProcessing += processors[i].totalRunTime;
+        totalTimeIdle += processors[i].totalIdleTime;
+    }
+
+    cout << setprecision(1) << fixed << "Average Queue Size: " << averageQueueSize << endl;
     cout << "Max Queue Size: " << maxQueueSize << endl;
-    cout << "Average Time Jobs in Queue: " << averageTimeJobsInQueue << endl;
+    cout << setprecision(1) << fixed << "Average Time Jobs in Queue: " << averageTimeJobsInQueue << endl;
     cout << "Total A Jobs Arrived: " << totalAJobsArrived << endl;
     cout << "Total A Jobs Completed: " << totalAJobsCompleted << endl;
     cout << "Total B Jobs Arrived: " << totalBJobsArrived << endl;
@@ -81,4 +99,6 @@ void CustomQueue::reportMetrics() {
     cout << "Total Jobs Completed: " << totalJobsCompleted << endl;
     cout << "Total Time Processing: " << totalTimeProcessing << endl;
     cout << "Total Time Idle: " << totalTimeIdle << endl;
+
+    averageQueueSize = 0;
 }
