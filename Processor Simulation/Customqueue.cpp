@@ -2,7 +2,7 @@
 #include <iomanip>
 
 using namespace std;
-
+// enqueue job into queue
 void CustomQueue::enqueue(jobEntry job) {
     jobQueue.push_back(job);
     currentSize++;
@@ -26,7 +26,7 @@ void CustomQueue::enqueue(jobEntry job) {
     // update rear
     rear = currentSize - 1;
 }
-
+// dequeue job from queue
 void CustomQueue::dequeue() {
     if (currentSize == 0) {
         cerr << "Error: Queue is empty." << endl;
@@ -55,11 +55,11 @@ void CustomQueue::dequeue() {
     // update front
     front = 0;
 }
-
+// check if queue is empty
 bool CustomQueue::isEmpty() {
     return currentSize == 0 ? true : false;
 }
-
+// print queue (unused)
 void CustomQueue::printQueue() {
     for (int i = 0; i < currentSize; i++) {
         cout << "Job Type " << jobQueue[i].jobType << "(#" << jobQueue[i].jobTypeNum << ")" << "\nJob # " 
@@ -67,7 +67,7 @@ void CustomQueue::printQueue() {
         << jobQueue[i].arrivalTime << "\nProcessing Time: " << jobQueue[i].processingTime << endl;
     }
 }
-
+// metrics report for simulation
 void CustomQueue::reportMetrics(const int clock, CustomQueue interruptedQueue, vector<Processor> processors) {
     averageTimeJobsInQueue = ((float)this->totalTimeJobsInQueue + interruptedQueue.totalTimeJobsInQueue) / clock;
 

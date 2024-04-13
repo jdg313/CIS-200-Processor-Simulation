@@ -3,7 +3,7 @@
 #include <vector>
 
 using namespace std;
-
+// struct to hold job information
 struct jobEntry {
     char jobType;
     int jobNumOverall;
@@ -18,7 +18,7 @@ struct jobEntry {
     jobEntry(char jt, int jno, int jtn, int at, int pt) : jobType(jt), jobNumOverall(jno), 
     jobTypeNum(jtn), arrivalTime(at), processingTime(pt) {}
 };
-
+// struct to hold processor information
 struct Processor {
     int timeRemaining;
     bool isIdle = true;
@@ -30,7 +30,7 @@ struct Processor {
     // parameterized constructor
     Processor(int tr) : timeRemaining(tr) {}
 };
-
+// class to hold custom queue information
 class CustomQueue {
     public:
         vector<jobEntry> jobQueue;
