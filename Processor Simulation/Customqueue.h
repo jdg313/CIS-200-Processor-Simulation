@@ -11,7 +11,6 @@ struct jobEntry {
     int arrivalTime;
     int processingTime;
     bool processed = false;
-    jobEntry* next = nullptr;
     // default constructor
     jobEntry() : jobType('\0'), jobNumOverall(-1), jobTypeNum(-1), arrivalTime(0), processingTime(0) {}
     // parameterized constructor
@@ -19,9 +18,21 @@ struct jobEntry {
     jobTypeNum(jtn), arrivalTime(at), processingTime(pt) {}
 };
 
+struct Processor {
+    int timeRemaining;
+    bool isIdle = true;
+    jobEntry currentJob;
+    // default constructor
+    Processor() {}
+    // parameterized constructor
+    Processor(int tr) : timeRemaining(tr) {}
+};
+
 class CustomQueue {
-    private:
+    public:
         vector<jobEntry> jobQueue;
+        Processor processorList[4];
+
         int currentSize = 0;
         float averageQueueSize = 0;
         int maxQueueSize = 0;
@@ -39,8 +50,17 @@ class CustomQueue {
         int totalTimeProcessing = 0;
         int totalTimeIdle = 0;
 
-    public:
-        CustomQueue();
-        ~CustomQueue();
-        
+        int front = 0;
+        int rear = 0;
+
+
+        CustomQueue() {};
+        ~CustomQueue() {};
+        void enqueue(jobEntry job);
+        void dequeue();
+        bool isEmpty();
+        void printQueue();
+        jobEntry frontJob() { return jobQueue[front]; }
+        jobEntry rearJob() { return jobQueue[rear]; };
+        void reportMetrics();
 };
